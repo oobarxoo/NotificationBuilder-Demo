@@ -1,0 +1,592 @@
+﻿Version=3.82
+IconFile=
+NumberOfModules=3
+Module1=NotePopup
+Module2=NoteParent
+Module3=ActionService
+Build1=Default,barxdroid.nbtest
+DoNotOverwriteManifest=False
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: http://www.basic4ppc.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="4" android:targetSdkVersion="17"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~SetActivityAttribute(NotePopup, android:parentActivityName, ".NoteParent")~\n~SetActivityAttribute(NotePopup, android:launchMode, "standard")~\n~AddActivityText(NotePopup,<meta-data~\n~        android:name="android.support.PARENT_ACTIVITY"~\n~        android:value=".NoteParent"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~'End of default text.~\n~
+NumberOfFiles=10
+File1=bigpicture.png
+File2=customN.bal
+File3=Main.bal
+File4=note.mp3
+File5=pnl1.bal
+File6=pnl2.bal
+File7=pnl3.bal
+File8=pnl4.bal
+File9=pnl5.bal
+File10=red.png
+NumberOfLibraries=5
+Library1=core
+Library2=notificationbuilder
+Library3=reflection
+Library4=stringutils
+Library5=androidresources
+@EndOfDesignText@
+#Region Module Attributes
+	#FullScreen: False
+	#IncludeTitle: True
+	#ApplicationLabel: NBDemo
+	#VersionCode: 4
+	#VersionName: 3
+	#SupportedOrientations: portrait
+	#CanInstallToExternalStorage: False
+#End Region
+'Activity module
+Sub Process_Globals
+	Dim sb As StringBuilder
+
+End Sub
+
+Sub Globals
+	Dim nb, nb2, nb3, nbPage2, nbWear As NotificationBuilder
+	Dim nbInboxStyle As NotificationInboxStyle
+	Dim nbBigTextStyle As NotificationBigTextStyle
+	Dim nbBigPictureStyle As NotificationBigPictureStyle
+	Dim WearableExtender As NotificationWearableExtender
+	Dim rem As NotificationRemoteInput
+	
+	Dim txtTitle, txtText, txtSubText, txtInfoText As EditText
+	Dim cboLightColor, cboLightSpeed, cboVibrateRate, cboPersistance, cboWearGravity, cboStyle As Spinner
+	Dim pnlLight, pnlSound, pnlVibrate, pnlTexts, pnlPersistance, pnlStyle, pnlWear As Panel
+	Dim rdoCustomLight, rdoDefaultLight, rdoCustomVibrate, rdoDefaultVibrate As RadioButton
+	Dim ToggleNotification, ToggleLight, ToggleSound, ToggleVibrate As ToggleButton
+	Dim ScrollBody, ScrollCode As ScrollView
+	Dim chkShowNumber, chkHideTime, chkChrono, chkProgress, chkStacked, chkActions, chkWearActions, chkVoiceInput, chkPage, chkChoices As CheckBox
+	Dim lblCode As Label
+	Dim svHeight As Int = 0
+
+	Dim NotifyOnPause As Boolean = False
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	Activity.LoadLayout("Main")
+	Activity.Title = "Notification Builder Demo"
+	
+	lblCode.Initialize("")
+	ScrollCode.Panel.AddView(lblCode, 10dip, 10dip, 100%x - 20dip, 100%y - 20dip)
+	ScrollBody.Panel.Color = Colors.Transparent
+	ScrollBody.Panel.Width = 100%x
+	ScrollBody.Panel.LoadLayout("pnl1")
+	svHeight = svHeight + 450dip'LayoutVals.Height
+	ScrollBody.Panel.LoadLayout("pnl2")
+	pnlTexts.Top = svHeight	
+	svHeight = svHeight + 420dip
+	ScrollBody.Panel.LoadLayout("pnl3")
+	pnlPersistance.Top = svHeight
+	svHeight = svHeight + 70dip
+	ScrollBody.Panel.LoadLayout("pnl4")
+	pnlStyle.Top = svHeight
+	svHeight = svHeight + 170dip
+	ScrollBody.Panel.LoadLayout("pnl5")
+	pnlWear.Top = svHeight
+	svHeight = svHeight + 350dip
+	
+	ScrollBody.Panel.Height = svHeight
+	cboLightColor.AddAll(Array As String("Green", "Orange", "Red", "White", "Blue"))
+	cboLightSpeed.AddAll(Array As String("Fast", "Medium", "Slow"))
+	cboVibrateRate.AddAll(Array As String("Fast", "Medium", "Slow"))
+	cboPersistance.AddAll(Array As String("Normal", "On Going", "Auto Cancel"))
+	cboStyle.AddAll(Array As String("Normal", "InboxStyle", "BigTextStyle", "BigPictureStyle"))
+	If FirstTime Then
+		Msgbox("Please Note:" & CRLF & "Not all features are supported by all platform versions. Many features require API 11+ and some API 16+. These requirements are documented in the Library. Thank You", "Important Info")
+	End If
+	cboWearGravity.AddAll(Array As String("BOTTOM", "TOP"))
+	sb.Initialize
+End Sub
+
+Sub Activity_Resume
+	Dim In As Intent
+	Dim intentExtra As String
+	
+	In = Activity.GetStartingIntent
+	Log(In.ExtrasToString)
+	If In.HasExtra("Notification_Tag") Then
+		intentExtra = In.GetExtra("Notification_Tag")
+		ToastMessageShow(intentExtra, False)
+	End If
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+		If UserClosed Then
+			nb.Cancel(1)
+			nb2.Cancel(2)
+			nb3.Cancel(3)
+		Else
+			If NotifyOnPause Then
+				nb.Notify(1)
+				If chkStacked.Checked Then
+					nb2.Notify(2)
+					nb3.Notify(3)
+				End If
+				ToggleNotification.Checked = True
+				
+			End If
+		End If
+End Sub
+
+#Region Sound Options
+Sub ToggleSound_CheckedChange(Checked As Boolean)
+	
+End Sub
+#End Region
+
+#Region Light Options
+Sub ToggleLight_CheckedChange(Checked As Boolean)
+	CheckLight
+End Sub
+
+Sub rdoCustomLight_CheckedChange(Checked As Boolean)
+	CheckLight
+End Sub
+
+Sub rdoDefaultLight_CheckedChange(Checked As Boolean)
+	CheckLight
+End Sub
+
+Sub CheckLight()
+	If ToggleLight.Checked AND rdoCustomLight.Checked Then
+		cboLightColor.Enabled = True
+		cboLightSpeed.Enabled = True
+	Else
+		cboLightColor.Enabled = False
+		cboLightSpeed.Enabled = False
+	End If	
+End Sub
+#End Region
+
+#Region Vibrate Options
+Sub ToggleVibrate_CheckedChange(Checked As Boolean)
+	CheckVibrate
+End Sub
+Sub rdoDefaultVibrate_CheckedChange(Checked As Boolean)
+	CheckVibrate
+End Sub
+Sub rdoCustomVibrate_CheckedChange(Checked As Boolean)
+	CheckVibrate
+End Sub
+
+Sub CheckVibrate()
+	If ToggleVibrate.Checked AND rdoCustomVibrate.Checked Then
+		cboVibrateRate.Enabled = True
+	Else
+		cboVibrateRate.Enabled = False
+	End If
+End Sub
+
+#End Region
+
+#Region Text Options
+Sub chkShowNumber_CheckedChange(Checked As Boolean)
+	txtInfoText.Enabled = Not(Checked)
+End Sub
+
+Sub chkChrono_CheckedChange(Checked As Boolean)
+	chkHideTime.Enabled = Not(Checked)
+End Sub
+#End Region
+
+#Region AdditionalOptions
+Sub chkStacked_CheckedChange(Checked As Boolean)
+	'chkPage.Checked = Not(Checked)
+End Sub
+#End Region
+
+#Region Wear Options
+Sub chkVoiceInput_CheckedChange(Checked As Boolean)
+	chkChoices.Enabled = chkVoiceInput.Checked
+End Sub
+
+Sub chkPage_CheckedChange(Checked As Boolean)
+	'chkStacked.Checked = Not(Checked)
+End Sub
+#End Region
+
+Sub ToggleNotification_CheckedChange(Checked As Boolean)
+	If Checked = True Then
+		'build notification and string builder
+		nb.Initialize
+		nb2.Initialize
+		nb3.Initialize
+		nbWear.Initialize
+		nbPage2.Initialize
+		rem.Initialize("Action_Reply")
+		WearableExtender.Initialize		
+
+		'WearableExtender.Gravity = WearableExtender.TOP
+		'WearableExtender.ContentIcon = "icon"
+		'WearableExtender.SetContentAction(0)
+		
+		sb.Initialize
+		sb.Append("==============================").Append(CRLF)
+		sb.Append("==Code to build Notification==").Append(CRLF)
+		sb.Append("==============================").Append(CRLF)
+		
+		If chkStacked.Checked Then
+			sb.Append("Dim nb, nb2, nb3 as NotificationBuilder").Append(CRLF)
+			sb.Append("nb.Initialize").Append(CRLF)
+			sb.Append("nb2.Initialize").Append(CRLF)
+			sb.Append("nb3.Initialize").Append(CRLF)
+		Else
+			sb.Append("Dim nb as NotificationBuilder").Append(CRLF)
+			sb.Append("nb.Initialize").Append(CRLF)
+		End If
+
+		If chkPage.Checked Then
+			sb.Append("Dim nbPage2 as NotifictaionBuilder").Append(CRLF)
+			sb.Append("nbPage2.Initialize").Append(CRLF)
+		End If
+		
+		If chkWearActions.Checked OR chkVoiceInput.Checked OR chkPage.Checked OR chkChoices.Checked OR (cboWearGravity.SelectedItem = "TOP") Then
+			sb.Append("Dim WearableExtender as NotificationWearableExtender").Append(CRLF)
+			sb.Append("WearableExtender.Initialize").Append(CRLF)
+			If cboWearGravity.SelectedItem = "TOP" Then
+				sb.Append("WearableExtender.Gravity = WearableExtender.TOP").Append(CRLF)
+				WearableExtender.Gravity = WearableExtender.TOP
+			End If
+		End If
+		
+		If chkVoiceInput.Checked Then
+			sb.Append("Dim rem as NotificationRemoteInput").Append(CRLF)
+			sb.Append("rem.Initialize(""Action_Reply"")").Append(CRLF)
+		End If
+		
+		Select cboStyle.SelectedItem
+		Case "InboxStyle"
+			sb.Append("Dim nbInboxStyle as NotificationInboxStyle").Append(CRLF)
+		Case "BigTextStyle"
+			sb.Append("Dim nbBigTextStyle as NotificationBigTextStyle").Append(CRLF)
+		Case "BigPictureStyle"
+			sb.Append("Dim nbBigPictureStyle as NotificationBigPictureStyle").Append(CRLF)
+		End Select
+		sb.Append(CRLF).Append("nb.SmallIcon = ""icon""").Append(CRLF)
+		sb.Append("nb.Ticker = ""New Demo""").Append(CRLF)
+		sb.Append("nb.Tag = ""some tag""").Append(CRLF)
+		sb.Append("nb.setActivity(Me)").Append(CRLF)
+		
+		nb.SmallIcon = "icon"
+		nb.Ticker = "New Demo"
+		nb.Tag = "some tag"
+		nb.setActivity(Me)
+		
+		#Region Light
+		If ToggleLight.Checked Then
+			If rdoDefaultLight.Checked Then
+				nb.DefaultLight = True
+				sb.Append("nb.DefaultLight = True").Append(CRLF)
+			Else
+				Dim nbColor, onMs, offMs As Int
+				'Dim nbColorText As String
+				
+				sb.Append("nb.SetCustomLight(")
+				
+				Select cboLightColor.SelectedItem
+				
+				Case "Green"
+					nbColor = Colors.Green
+					sb.Append("Colors.Green, ")
+				Case "Orange"
+					nbColor = Colors.ARGB(255,198,79,24)
+					sb.Append("Colors.ARGB(255, 198, 79, 24), ")
+				Case "Red"
+					nbColor = Colors.Red
+					sb.Append("Colors.Red, ")
+				Case "White"
+					nbColor = Colors.White
+					sb.Append("Colors.White, ")
+				Case "Blue"
+					nbColor = Colors.Blue
+					sb.Append("Colors.Blue, ")
+				End Select
+				
+				Select cboLightSpeed.SelectedItem
+				
+				Case "Fast"
+					onMs = 50
+					offMs = 50
+					sb.Append("50, 50)")
+				Case "Medium"
+					onMs = 200
+					offMs = 200
+					sb.Append("200, 200)")
+				Case "Slow"
+					onMs = 500
+					offMs = 500
+					sb.Append("500, 500)")
+				End Select
+				sb.Append(CRLF)
+				nb.setCustomLight(nbColor, onMs, offMs)
+
+			End If
+			Msgbox("Press the power button to put your device to sleep. The notification will be re-issued on sleep and you should see the light effects", "Important Info")		
+			NotifyOnPause = True
+		Else
+			nb.DefaultLight = False
+			sb.Append("nb.DefaultLight = False").Append(CRLF)
+			NotifyOnPause = False
+		End If
+		#End Region
+	
+		#Region Vibrate
+		If ToggleVibrate.Checked Then
+			If rdoDefaultVibrate.Checked Then
+				nb.DefaultVibrate = True
+				sb.Append("nb.DefaultVibrate = True")
+			Else
+				sb.Append("nb.CustomVibrate = Array as Long(")
+				Select cboVibrateRate.SelectedItem
+				
+				Case "Fast"
+					nb.CustomVibrate = Array As Long(0, 100, 100, 100)
+					sb.Append("0, 100, 100, 100)")
+				Case "Medium"
+					nb.CustomVibrate = Array As Long(0, 200, 200, 200)
+					sb.Append("0, 200, 200, 200)")
+				Case "Slow"
+					nb.CustomVibrate = Array As Long(0, 500, 500, 500)
+					sb.Append("0, 500, 500, 500)")
+				End Select
+				
+			End If
+			sb.Append(CRLF)
+		Else
+			nb.DefaultVibrate = False
+			sb.Append("nb.DefaultVibrate = False").Append(CRLF)
+		End If
+		
+		#End Region
+	
+		#Region Sound
+		If ToggleSound.Checked Then
+			nb.DefaultSound = True
+			sb.Append("nb.DefaultSound = True")
+		Else
+			nb.DefaultSound = False
+			sb.Append("nb.DefaultSound = False")
+		End If
+		sb.Append(CRLF)
+		#End Region
+		
+		#Region Texts
+		
+		If txtTitle.Text <> "" Then
+			nb.ContentTitle = txtTitle.Text
+			sb.Append("nb.ContentTitle = """ & txtTitle.Text & """").Append(CRLF)
+		End If
+		If txtText.Text <> "" Then
+			nb.ContentText = txtText.Text
+			sb.Append("nb.ContentText = """ & txtText.Text & """").Append(CRLF)
+		End If
+		If txtInfoText.Text <> "" AND txtInfoText.Enabled Then
+			nb.ContentInfo = txtInfoText.Text
+			sb.Append("nb.ContentInfo = """ & txtInfoText.Text & """").Append(CRLF)
+		End If
+		If txtSubText.Text <> "" AND chkProgress.Checked = False Then
+			nb.SubText = txtSubText.Text
+			sb.Append("nb.SubText = """ & txtSubText.Text & """").Append(CRLF)
+		End If
+		
+		If chkShowNumber.Checked Then
+			nb.Number = 2
+			sb.Append("nb.Number = 2").Append(CRLF)
+		End If
+		
+		If chkHideTime.Checked AND chkHideTime.Enabled Then
+			nb.ShowTime = False
+			sb.Append("nb.ShowTime = False").Append(CRLF)
+		End If
+		
+		If chkChrono.Checked Then
+			nb.UsesChrono = True
+			sb.Append("nb.UsesChrono = True").Append(CRLF)
+		End If
+		
+		If chkProgress.Checked Then
+			nb.setProgress(100, 40, False)
+			sb.Append("nb.setProgress(100, 40, False)").Append(CRLF)
+		End If
+		#End Region
+		
+		#Region Persistance
+		Select cboPersistance.SelectedItem
+		Case "Normal"
+			
+		Case "On Going"
+			nb.OnGoingEvent = True
+			sb.Append("nb.OnGoingEvent = True").Append(CRLF)
+		Case "Auto Cancel"
+			nb.AutoCancel = True
+			sb.Append("nb.AutoCancel = True").Append(CRLF).Append(CRLF)
+		End Select
+		
+		#End Region
+		
+		#Region Style
+		Select cboStyle.SelectedItem
+		
+		Case "InboxStyle"
+			nbInboxStyle.Initialize
+			nbInboxStyle.BigContentTitle = "InboxStyle Example"
+			nbInboxStyle.SummaryText = "3 New Messages..."
+			nbInboxStyle.AddLine = "John Doe - Hey man, How's things?..."
+			nbInboxStyle.AddLine = "Jane Doe - You fancy lunch tonight?..."
+			nbInboxStyle.AddLine = "Joe Bloggs - Please find the contract attached..."
+			nb.SetStyle(nbInboxStyle)
+			sb.Append("nbInboxStyle.Initialize").Append(CRLF)
+			sb.Append("nbInboxStyle.BigContentTitle = ""InboxStyle Example""").Append(CRLF)
+			sb.Append("nbInboxStyle.SummaryText = ""3 New Messages...""").Append(CRLF)
+			sb.Append("nbInboxStyle.AddLine = ""John Doe - Hey man, How's things?...""").Append(CRLF)
+			sb.Append("nbInboxStyle.AddLine = ""Jane Doe - You fancy lunch tonight?...""").Append(CRLF)
+			sb.Append("nbInboxStyle.AddLine = ""Joe Bloggs - Please find the contract attached...""").Append(CRLF)
+			sb.Append("nb.SetStyle(nbInboxStyle)").Append(CRLF)
+			
+		Case "BigTextStyle"
+			nbBigTextStyle.Initialize
+			nbBigTextStyle.BigText = "This is a large section of text that can only be viewed by expanding the notification. This is usually done with a gesture. On older devices, there is no way to see this in the notification."
+			nbBigTextStyle.BigContentTitle = "BigTextStyle Example"
+			nbBigTextStyle.SummaryText = "Read More..."
+			nb.SetStyle(nbBigTextStyle)
+			sb.Append("nbBigTextStyle.Initialize").Append(CRLF)
+			sb.Append("nbBigTextStyle.BigText = ""This Is a large section of text that can only be viewed by expanding the Notification. This Is usually done with a gesture. On older devices, there Is no way To see this In the Notification.""").Append(CRLF)
+			sb.Append("nbBigTextStyle.BigContentTitle = ""BigTextStyle Example""").Append(CRLF)
+			sb.Append("nbBigTextStyle.SummaryText = ""Read More...""").Append(CRLF)
+			sb.Append("nb.SetStyle(nbBigTextStyle)").Append(CRLF)
+		
+		Case "BigPictureStyle"
+			Dim BigPicture As Bitmap
+			BigPicture.Initialize(File.DirAssets, "bigpicture.png")
+			nbBigPictureStyle.Initialize
+			nbBigPictureStyle.BigContentTitle = "BigPictureStyle Example"
+			nbBigPictureStyle.SummaryText = "View More..."
+			nbBigPictureStyle.BigPicture = BigPicture
+			nb.SetStyle(nbBigPictureStyle)
+			sb.Append("Dim BigPicture As Bitmap").Append(CRLF)
+			sb.Append("BigPicture.Initialize(File.DirAssets, ""BigPicture.png"")").Append(CRLF)
+			sb.Append("nbBigPictureStyle.BigContentTitle = ""BigPictureStyle Example""").Append(CRLF)
+			sb.Append("nbBigPictureStyle.SummaryText = ""View More...""").Append(CRLF)
+			sb.Append("nbBigPictureStyle.BigPicture = BigPicture").Append(CRLF)
+			sb.Append("nb.SetStyle(nbBigPictureStyle)").Append(CRLF)
+			
+		End Select
+		#End Region
+				
+		#Region Actions
+		If chkActions.Checked Then
+			nb.AddAction("arrow", "Action1", "Action1", NotePopup)
+			nb.AddAction("circle", "Action2", "Action2", NotePopup)
+			nb.AddAction2("star", "Action3", "Action3", ActionService)
+			sb.Append("nb.AddAction(""arrow"", ""Action1"", NotePopup)").Append(CRLF)
+			sb.Append("nb.AddAction(""circle"", ""Action2"", NotePopup)").Append(CRLF)
+			sb.Append("nb.AddAction2(""star"", ""Action3"", ActionService").Append(CRLF)
+		End If
+		#End Region
+		
+		#Region Wear
+			If chkWearActions.Checked Then
+				sb.Append("WearableExtender.AddAction(""arrow"", ""Wear1"", ""WearActionTag1"", NotePopup)").Append(CRLF)
+				sb.Append("WearableExtender.AddAction(""circle"", ""Wear2"", ""WearActionTag2"", NotePopup)").Append(CRLF)
+				WearableExtender.AddAction("arrow", "Wear1", "WearActionTag1", NotePopup)
+				WearableExtender.AddAction("circle", "Wear2", "WearActionTag2", NotePopup)
+			End If
+			
+			If chkVoiceInput.Checked Then
+				sb.Append("rem.Label = ""Speak Now""").Append(CRLF)
+				rem.Label = "Speak Now"
+				If chkChoices.Checked Then
+					sb.Append("rem.Choices = Array As String(""Yes"", ""No"", ""Maybe"")").Append(CRLF)
+					rem.Choices = Array As String("Yes", "No", "Maybe")
+				End If
+	
+				sb.Append("WearableExtender.AddAction2(""arrow"", ""Reply"", ""RemAction"", NotePopup, rem)").Append(CRLF)	
+				WearableExtender.AddAction2("arrow", "Reply", "RemAction", NotePopup, rem)
+			End If
+			
+			If chkPage.Checked Then
+				sb.Append("nbPage2.smallIcon = ""icon""").Append(CRLF)
+				sb.Append("nbPage2.ContentTitle = ""Page 2""").Append(CRLF)
+				sb.Append("nbPage2.ContentText = Body 2").Append(CRLF)
+				sb.Append("WearableExtender.AddPage(nb2)").Append(CRLF)
+				nbPage2.smallIcon = "icon"
+				nbPage2.ContentTitle = "Page 2"
+				nbPage2.ContentText = "Body 2"
+				WearableExtender.AddPage(nbPage2)
+			End If
+		#End Region
+		
+		#Region Stacked
+		If chkStacked.Checked Then
+			sb.Append("nb.GroupSummary = True").Append(CRLF)
+			sb.Append("nb.Group = ""NBGroup""").Append(CRLF)
+			sb.Append("nb2.SmallIcon = ""icon""").Append(CRLF)
+			sb.Append("nb2.ContentTitle = ""Stack 1 Title""").Append(CRLF)
+			sb.Append("nb2.ContentText = ""Stack 1 Text""").Append(CRLF)
+			sb.Append("nb2.ContentInfo = ""Stack 1 Info""").Append(CRLF)
+			sb.Append("nb2.Group = ""NBGroup""").Append(CRLF)
+			
+			sb.Append("nb3.SmallIcon = ""icon""").Append(CRLF)
+			sb.Append("nb3.ContentTitle = ""Stack 2 Title""").Append(CRLF)
+			sb.Append("nb3.ContentText = ""Stack 2 Text""").Append(CRLF)
+			sb.Append("nb3.ContentInfo = ""Stack 2 Info""").Append(CRLF)
+			sb.Append("nb3.Group = ""NBGroup""").Append(CRLF)
+
+			nb.GroupSummary = True
+			nb.Group = "NBGroup"
+			nb2.SmallIcon = "icon"
+			nb2.ContentTitle = "Stack 1 Title"
+			nb2.ContentText = "Stack 1 Text"
+			nb2.ContentInfo = "Stack 1 Info"
+			nb2.Tag = "nb2 Tag"
+			nb2.Group = "NBGroup"
+			
+			nb3.SmallIcon = "icon"
+			nb3.ContentTitle = "Stack 2 Title"
+			nb3.ContentText = "Stack 2 Text"
+			nb3.ContentInfo = "Stack 2 Info"
+			nb3.Tag = "nb3 Tag"
+			nb3.Group = "NBGroup"
+		End If
+		#End Region
+		
+		'nb.setParentActivity(NoteParent)
+		'nb.setDeleteActivity(NotePopup)
+		
+		If chkVoiceInput.Checked OR chkWearActions.Checked OR chkPage.Checked OR (cboWearGravity.SelectedItem = "TOP") Then
+			If chkStacked.Checked Then
+				sb.Append("nb2.Extend(WearableExtender)").Append(CRLF)
+				nb2.Extend(WearableExtender)
+			Else
+				sb.Append("nb.Extend(WearableExtender)").Append(CRLF)
+				nb.Extend(WearableExtender)
+			End If
+		End If		
+
+		nb.Notify(1)
+		If chkStacked.Checked Then
+			sb.Append("nb2.Notifiy(2)").Append(CRLF)
+			sb.Append("nb3.Notifiy(3)").Append(CRLF)
+			nb2.Notify(2)
+			nb3.Notify(3)
+		End If
+
+		sb.Append("nb.Notifiy(1)").Append(CRLF)
+		sb.Append(CRLF)
+		Log(sb.ToString)
+		
+		Dim su As StringUtils
+		lblCode.Text = sb.ToString
+		lblCode.TextSize = 14
+		lblCode.Typeface = Typeface.MONOSPACE
+		lblCode.Height = su.MeasureMultilineTextHeight(lblCode, lblCode.Text)
+		ScrollCode.Panel.Height = Max(lblCode.Height, 100%y)
+		ScrollCode.Visible = True
+	Else
+		'cancel notification
+		nb.Cancel(1)
+		nb2.Cancel(2)
+		nb3.Cancel(3)
+		ScrollCode.Visible = False
+	End If
+	
+End Sub

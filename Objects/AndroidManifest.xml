@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	package="barxdroid.nbtest"
+	android:versionCode="4"
+	android:versionName="3"
+	android:installLocation="internalOnly">
+	
+	<uses-sdk android:minSdkVersion="4" android:targetSdkVersion="17"/>
+	<supports-screens android:largeScreens="true" 
+	    android:normalScreens="true" 
+	    android:smallScreens="true" 
+	    android:anyDensity="true"/>
+	<uses-permission android:name="android.permission.VIBRATE"/>
+	<application
+		android:icon="@drawable/icon"
+		android:label="NBDemo">
+		<activity
+			android:windowSoftInputMode="stateHidden"
+			android:launchMode="singleTop"
+			android:name=".main"
+			android:label="NBDemo"
+			android:screenOrientation="portrait">
+			<intent-filter>
+			   <action android:name="android.intent.action.MAIN" />
+			   <category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+			
+		</activity>
+		<activity
+			android:windowSoftInputMode="stateHidden"
+			android:launchMode="standard"
+			android:name=".notepopup"
+			android:label="NBDemo"
+			android:screenOrientation="portrait"
+			android:parentActivityName=".NoteParent">
+			
+			<meta-data
+			        android:name="android.support.PARENT_ACTIVITY"
+			        android:value=".NoteParent"/>
+		</activity>
+		<activity
+			android:windowSoftInputMode="stateHidden"
+			android:launchMode="singleTop"
+			android:name=".noteparent"
+			android:label="NBDemo"
+			android:screenOrientation="portrait">
+		</activity>
+		<service android:name=".actionservice">
+		</service>
+		<receiver android:name=".actionservice$actionservice_BR">
+		</receiver>
+	</application>
+</manifest>
